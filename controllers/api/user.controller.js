@@ -55,10 +55,8 @@ const jasonjwt = process.env.SECRET;
 
 
 exports.login = async (req, res) => {
-    const email = req.body.data.email;
-    const password = req.body.data.password;
-    // console.log(email);
-    // console.log(password);
+    const email = req.body.email;
+    const password = req.body.password;
 
     if (!email || !password) {
         return res.status(200).send({
@@ -73,31 +71,19 @@ exports.login = async (req, res) => {
         });
     }
     const count = await UserModel.count({ where: { email: email } });
-    // console.log(count);
     if (count) {
         const dataLog = await UserModel.findOne({ where: { email: email } })
-        // console.log(dataLog);
         if (bcrypt.compareSync(password, dataLog.password)) {
             const payload = {
-                // id: dataLog.id,
-                name: dataLog.name,
                 email: dataLog.email,
                 password: dataLog.password,
             }
-            // console.log(payload + "gggggggggggggggggggggggggggggggggggggg");
             const token = jwt.sign(payload, jasonjwt);
-            // console.log(token);
-            // console.log("111111111111111111111111111111111");
             const dataName = {
-                // id: dataLog.id,
-                name: dataLog.name,
                 email: dataLog.email,
                 password: dataLog.password,
-                description: dataLog.description,
                 token: token,
             }
-            // console.log(dataName + "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv");
-            // console.log("222222222222222222222222222222222");
             return res.status(200).send({
                 data: {
                     success: true,
@@ -170,10 +156,10 @@ exports.register = async (req, res) => {
                   data: { success: true, userDetails: userDetails },
                   errorNode: { errorCode: 0, errorMsg: "No error" },
                 });
-                return res.status(200).send({
-                    data: { success: false, message: "User not found", userEmail: email },
-                    errorNode: { errorCode: 1, errorMsg: "User not found" },
-                  });
+                // return res.status(200).send({
+                //     data: { success: false, message: "User not found", userEmail: email },
+                //     errorNode: { errorCode: 1, errorMsg: "User not found" },
+                //   });
         
               } 
             //   else {
