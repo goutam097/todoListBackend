@@ -141,6 +141,30 @@ exports.todoList = async (req, res) => {
   }
 };
 
+// exports.todoList = async (req, res) => {
+//   const getAllUsers = async () => {
+//     const users = await TodoModel.findAll();
+//     return users.length ? users : [];
+//   };
+//   try {
+//     const users = await getAllUsers();
+//     if (users.length === 0) {
+//       return res.status(200).send({
+//         data: {
+//           success: true,
+//           message: "No data found",
+//           details: []
+//         },
+//         errorNode: { errorCode: 0, errorMsg: "No error" }
+//       });
+//     }
+//     res.send(users);
+//   } catch (err) {
+//     console.error(err);
+//     res.sendStatus(500);
+//   }
+// };
+
 
 exports.todoDetails = async (req, res) => {
   const id = req?.body?.id || null;
@@ -181,45 +205,92 @@ exports.todoDetails = async (req, res) => {
   }
 }
 
+// exports.todoCreate = async (req, res) => {
+//   const id = req?.body?.id || null;
+//   const title = req?.body?.title || null;
+//   const description = req?.body?.description || null;
+
+//   if (title && title != null && title != '') {
+//     try {
+//       if (id) {
+//         let todoWorkCreate = await TodoModel.update({
+//           title: title,
+//           description: description,
+//           id: id
+//         }, { where: { id: id } });
+
+//         return res.status(201).send({
+//           data: { success: true, details: todoWorkCreate, message: "Successfully updated" },
+//           errorNode: { errorCode: 0, errorMsg: "No Error" },
+//         });
+//       } else {
+//         let todoWorkCreate = await TodoModel.create({
+//           title: title,
+//           description: description,
+//           id: id
+//         });
+//         return res.status(201).send({
+//           data: { success: true, details: todoWorkCreate, message: "Successfully Created" },
+//           errorNode: { errorCode: 0, errorMsg: "No Error" },
+//         });
+//       }
+//     } catch (error) {
+//       return res.status(500).send({
+//         data: { success: false, message: "Something went wrong" },
+//         errorNode: { errorCode: 1, errorMsg: error },
+//       });
+//     }
+//   } else {
+//     return res.status(400).send({
+//       data: { success: false, message: "Title is required" },
+//       errorNode: { errorCode: 1, errorMsg: "Title is required" },
+//     });
+//   }
+// };
+
 exports.todoCreate = async (req, res) => {
   const id = req?.body?.id || null;
   const title = req?.body?.title || null;
   const description = req?.body?.description || null;
 
-  if (title && title != null && title != '') {
-    try {
-      if (id) {
-        let todoWorkCreate = await TodoModel.update({
-          title: title,
-          description: description,
+  if (!title || title === '') {
+    return res.status(400).send({
+      data: { success: false, message: 'Title is required' },
+      errorNode: { errorCode: 1, errorMsg: 'Title is required' },
+    });
+  }
+  let todoWorkCreate;
+  try {
+    if (id) {
+      todoWorkCreate = await TodoModel.update({
+        title: title,
+        description: description
+      }, {
+        where: {
           id: id
-        }, { where: { id: id } });
-
-        return res.status(201).send({
-          data: { success: true, details: todoWorkCreate, message: "Successfully updated" },
-          errorNode: { errorCode: 0, errorMsg: "No Error" },
-        });
-      } else {
-        let todoWorkCreate = await TodoModel.create({
-          title: title,
-          description: description,
-          id: id
-        });
-        return res.status(201).send({
-          data: { success: true, details: todoWorkCreate, message: "Successfully Created" },
-          errorNode: { errorCode: 0, errorMsg: "No Error" },
-        });
-      }
-    } catch (error) {
-      return res.status(500).send({
-        data: { success: false, message: "Something went wrong" },
-        errorNode: { errorCode: 1, errorMsg: error },
+        }
+      });
+    } else {
+      todoWorkCreate = await TodoModel.create({
+        title: title,
+        description: description
       });
     }
-  } else {
-    return res.status(400).send({
-      data: { success: false, message: "Title is required" },
-      errorNode: { errorCode: 1, errorMsg: "Title is required" },
+    return res.status(201).send({
+      data: {
+        success: true,
+        details: todoWorkCreate,
+        message: todoWorkCreate ? 'Successfully updated' : 'Successfully created'
+      },
+      errorNode: {
+        errorCode: 0,
+        errorMsg: 'No Error'
+      },
+    });
+  } catch (error) {
+    return res.status(500).send({
+      data: { success: false, message: 'Something went wrong' },
+      errorNode: { errorCode: 1, errorMsg: error },
     });
   }
 };
@@ -228,9 +299,7 @@ exports.todoCreate = async (req, res) => {
 exports.todoDelete = async (req, res) => {
   try {
     const id = req?.body?.id || null;
-
     if (id && id != null && id != '') {
-
       await TodoModel.destroy({ where: { id: id } });
 
       return res.status(200).send({
@@ -254,13 +323,14 @@ exports.todoDelete = async (req, res) => {
 exports.downloadCSV = async (req, res) => {
   try {
     let id = req.body.id || null;
-      if (!id)
-        return res.status(400).send({ data: { success: false, details: "Id is required" }, errorNode: { errorCode: 1, errorMsg: "Error" } });
+    if (!id)
+      return res.status(400).send({ data: { success: false, details: "Id is required" }, errorNode: { errorCode: 1, errorMsg: "Error" } });
     let mainArr = []
-    let downloadCsvForEmployee = await TodoModel.findAll({ attributes: [ 'id','title', 'description'], 
-    where: { id: id } 
-  });
-    const csvFields = ["id","Title","Description"]
+    let downloadCsvForEmployee = await TodoModel.findAll({
+      attributes: ['id', 'title', 'description'],
+      where: { id: id }
+    });
+    const csvFields = ["id", "Title", "Description"]
     csvFields.push(downloadCsvForEmployee)
     for (let data of downloadCsvForEmployee) {
       const mainObj = {
